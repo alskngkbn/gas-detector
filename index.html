@@ -16,7 +16,6 @@
         background: #0d1117;
         color: #e6edf3;
         padding: 24px;
-        min-height: 100vh;
       }
       h1 {
         text-align: center;
@@ -60,8 +59,6 @@
         font-size: 0.85em;
         color: #8b949e;
       }
-
-      /* Status warna */
       .AMAN {
         color: #3fb950;
       }
@@ -71,8 +68,6 @@
       .BAHAYA {
         color: #f85149;
       }
-
-      /* Progress bar gas */
       .bar-bg {
         background: #21262d;
         border-radius: 99px;
@@ -86,8 +81,6 @@
           width 0.5s,
           background 0.5s;
       }
-
-      /* Kontrol kipas */
       .btn-row {
         display: flex;
         gap: 10px;
@@ -101,42 +94,31 @@
         font-weight: bold;
         font-size: 0.95em;
         cursor: pointer;
-        transition: opacity 0.2s;
       }
-      button:hover {
-        opacity: 0.85;
-      }
-      #btnOn {
+      #btnFanOn {
         background: #238636;
         color: white;
       }
-      #btnOff {
+      #btnFanOff {
         background: #da3633;
         color: white;
       }
-      #btnAuto {
+      #btnFanAuto {
         background: #1f6feb;
         color: white;
       }
-
-      .fan-state {
-        display: inline-block;
-        margin-top: 10px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.82em;
-        font-weight: bold;
+      #btnServoT {
+        background: #da3633;
+        color: white;
       }
-      .fan-ON {
-        background: #23863633;
-        color: #3fb950;
+      #btnServoB {
+        background: #238636;
+        color: white;
       }
-      .fan-OFF {
-        background: #da363333;
-        color: #f85149;
+      #btnServoA {
+        background: #1f6feb;
+        color: white;
       }
-
-      /* Koneksi status */
       .conn-dot {
         display: inline-block;
         width: 8px;
@@ -148,163 +130,227 @@
       .conn-dot.connected {
         background: #3fb950;
       }
-      .conn-label {
-        font-size: 0.8em;
-        color: #8b949e;
-      }
-
       .timestamp {
         font-size: 0.75em;
         color: #8b949e;
         margin-top: 8px;
       }
+
+      /* Login screen */
+      #loginScreen {
+        max-width: 400px;
+        margin: 80px auto;
+        background: #161b22;
+        border-radius: 12px;
+        padding: 32px;
+        border: 1px solid #30363d;
+      }
+      #loginScreen h2 {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      #loginScreen input {
+        width: 100%;
+        padding: 10px 14px;
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        color: #e6edf3;
+        font-size: 0.95em;
+        margin-bottom: 12px;
+      }
+      #loginScreen button {
+        width: 100%;
+        padding: 12px;
+        background: #1f6feb;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      #loginScreen .hint {
+        font-size: 0.78em;
+        color: #8b949e;
+        margin-top: 10px;
+        text-align: center;
+      }
+      #dashboard {
+        display: none;
+      }
     </style>
   </head>
   <body>
-    <h1>🔥 Gas Leak Monitor</h1>
-    <p class="subtitle">
-      <span class="conn-dot" id="connDot"></span>
-      <span class="conn-label" id="connLabel">Menghubungkan...</span>
-    </p>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+      <h2>🔐 Gas Detector Login</h2>
+      <input type="text" id="inputUser" placeholder="Adafruit IO Username" />
+      <input
+        type="password"
+        id="inputKey"
+        placeholder="Adafruit IO Key (aio_xxxxx)"
+      />
+      <button onclick="startConnect()">🔌 Connect</button>
+      <p class="hint">
+        Kredensial tidak disimpan — hanya dipakai saat sesi ini
+      </p>
+    </div>
 
-    <div class="grid">
-      <!-- Status -->
-      <div class="card">
-        <h3>Status Kebocoran</h3>
-        <div class="value AMAN" id="gasStatus">—</div>
-      </div>
+    <!-- Dashboard -->
+    <div id="dashboard">
+      <h1>🔥 Gas Leak Monitor</h1>
+      <p class="subtitle">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connLabel">Menghubungkan...</span>
+      </p>
 
-      <!-- Level Gas -->
-      <div class="card">
-        <h3>Level Gas</h3>
-        <div>
-          <span class="value" id="gasLevel">—</span> <span class="unit">%</span>
+      <div class="grid">
+        <div class="card">
+          <h3>Status Kebocoran</h3>
+          <div class="value AMAN" id="gasStatus">—</div>
         </div>
-        <div class="bar-bg">
-          <div
-            class="bar-fill"
-            id="gasBar"
-            style="width: 0%; background: #3fb950"
-          ></div>
+        <div class="card">
+          <h3>Level Gas</h3>
+          <div>
+            <span class="value" id="gasLevel">—</span>
+            <span class="unit">%</span>
+          </div>
+          <div class="bar-bg">
+            <div
+              class="bar-fill"
+              id="gasBar"
+              style="width: 0%; background: #3fb950"
+            ></div>
+          </div>
         </div>
-      </div>
+        <div class="card">
+          <h3>Suhu</h3>
+          <div>
+            <span class="value" id="temp">—</span> <span class="unit">°C</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Kelembapan</h3>
+          <div>
+            <span class="value" id="hum">—</span> <span class="unit">%</span>
+          </div>
+        </div>
 
-      <!-- Suhu -->
-      <div class="card">
-        <h3>Suhu</h3>
-        <div>
-          <span class="value" id="temp">—</span> <span class="unit">°C</span>
+        <div class="card full">
+          <h3>Kontrol Kipas</h3>
+          <div>Status: <strong id="fanStatus">—</strong></div>
+          <div class="btn-row">
+            <button id="btnFanOn" onclick="fanControl('ON')">🌀 ON</button>
+            <button id="btnFanOff" onclick="fanControl('OFF')">⏹ OFF</button>
+            <button id="btnFanAuto" onclick="fanControl('AUTO')">
+              🔄 Auto
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Kelembapan -->
-      <div class="card">
-        <h3>Kelembapan</h3>
-        <div>
-          <span class="value" id="hum">—</span> <span class="unit">%</span>
-        </div>
-      </div>
-
-      <!-- Kontrol Kipas -->
-      <div class="card full">
-        <h3>Kontrol Kipas</h3>
-        <div>
-          Status kipas:
-          <span class="fan-state fan-OFF" id="fanBadge">OFF</span>
-        </div>
-        <div class="btn-row">
-          <button id="btnOn" onclick="fanControl('ON')">🌀 Kipas ON</button>
-          <button id="btnOff" onclick="fanControl('OFF')">⏹ Kipas OFF</button>
-          <button id="btnAuto" onclick="fanControl('AUTO')">🔄 Auto</button>
-        </div>
-        <div class="timestamp" id="lastUpdate">Menunggu data...</div>
-      </div>
-      <!-- Kontrol Servo -->
-      <div class="card full">
-        <h3>Kontrol Regulator Gas (Servo)</h3>
-        <div>Status regulator: <strong id="regStatus">TERBUKA</strong></div>
-        <div class="btn-row">
-          <button id="btnOff" onclick="servoControl('TUTUP')">🔒 Tutup Regulator</button>
-          <button id="btnOn" onclick="servoControl('BUKA')">🔓 Buka Regulator</button>
-          <button id="btnAuto" onclick="servoControl('AUTO')">🔄 Auto</button>
+        <div class="card full">
+          <h3>Kontrol Regulator Gas (Servo)</h3>
+          <div>Status: <strong id="regStatus">TERBUKA</strong></div>
+          <div class="btn-row">
+            <button id="btnServoT" onclick="servoControl('TUTUP')">
+              🔒 Tutup
+            </button>
+            <button id="btnServoB" onclick="servoControl('BUKA')">
+              🔓 Buka
+            </button>
+            <button id="btnServoA" onclick="servoControl('AUTO')">
+              🔄 Auto
+            </button>
+          </div>
+          <div class="timestamp" id="lastUpdate">Menunggu data...</div>
         </div>
       </div>
     </div>
 
     <script>
-      const AIO_USERNAME = "alskngkbn";
-      const AIO_KEY = "aio_BQyo98xfnEkGZdfqleL6vQpZtwHT";
+      let client;
+      let feeds = {};
 
-      const client = mqtt.connect(`wss://io.adafruit.com:443/mqtt`, {
-        username: AIO_USERNAME,
-        password: AIO_KEY,
-        clientId: "web_" + Math.random().toString(16).slice(2),
-      });
+      function startConnect() {
+        const username = document.getElementById("inputUser").value.trim();
+        const key = document.getElementById("inputKey").value.trim();
 
-      const feeds = {
-        gasLevel: `${AIO_USERNAME}/feeds/gas-level`,
-        gasStatus: `${AIO_USERNAME}/feeds/gas-status`,
-        temp: `${AIO_USERNAME}/feeds/temperature`,
-        hum: `${AIO_USERNAME}/feeds/humidity`,
-        fanCtrl: `${AIO_USERNAME}/feeds/fan-control`,
-        servoCtrl: `${AIO_USERNAME}/feeds/servo-control`,
-        fanStatus: `${AIO_USERNAME}/feeds/fan-status`
-      };
-
-      client.on("connect", () => {
-        document.getElementById("connDot").classList.add("connected");
-        document.getElementById("connLabel").textContent =
-          "Terhubung ke Adafruit IO";
-        client.subscribe(Object.values(feeds));
-      });
-
-      client.on("error", () => {
-        document.getElementById("connLabel").textContent = "Koneksi gagal";
-      });
-
-      client.on("message", (topic, message) => {
-        const val = message.toString();
-        const now = new Date().toLocaleTimeString("id-ID");
-
-        if (topic === feeds.gasStatus) {
-          const el = document.getElementById("gasStatus");
-          el.textContent = val;
-          el.className = "value " + val;
+        if (!username || !key) {
+          alert("Username dan Key wajib diisi!");
+          return;
         }
 
-        if (topic === feeds.gasLevel) {
-          const pct = parseInt(val);
-          document.getElementById("gasLevel").textContent = pct;
-          const bar = document.getElementById("gasBar");
-          bar.style.width = pct + "%";
-          bar.style.background =
-            pct < 30 ? "#3fb950" : pct < 60 ? "#d29922" : "#f85149";
-          document.getElementById("lastUpdate").textContent =
-            "Update terakhir: " + now;
-        }
+        // Simpan di memori browser saja (bukan localStorage)
+        feeds = {
+          gasLevel: `${username}/feeds/gas-level`,
+          gasStatus: `${username}/feeds/gas-status`,
+          temp: `${username}/feeds/temperature`,
+          hum: `${username}/feeds/humidity`,
+          fanStatus: `${username}/feeds/fan-status`,
+          fanCtrl: `${username}/feeds/fan-control`,
+          servoCtrl: `${username}/feeds/servo-control`,
+        };
 
-        if (topic === feeds.temp)
-          document.getElementById("temp").textContent =
-            parseFloat(val).toFixed(1);
-        if (topic === feeds.hum)
-          document.getElementById("hum").textContent =
-            parseFloat(val).toFixed(1);
+        client = mqtt.connect("wss://io.adafruit.com:443/mqtt", {
+          username: username,
+          password: key,
+          clientId: "web_" + Math.random().toString(16).slice(2),
+        });
 
-        if (topic === feeds.fanCtrl) {
-          const badge = document.getElementById("fanBadge");
-          badge.textContent = val;
-          badge.className = "fan-state fan-" + val;
-        }
-      });
+        client.on("connect", () => {
+          document.getElementById("loginScreen").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+          document.getElementById("connDot").classList.add("connected");
+          document.getElementById("connLabel").textContent =
+            "Terhubung ke Adafruit IO";
+          client.subscribe(Object.values(feeds));
+        });
+
+        client.on("error", (err) => {
+          alert("Gagal konek! Cek username dan key lo.");
+          console.error(err);
+        });
+
+        client.on("message", (topic, message) => {
+          const val = message.toString();
+          const now = new Date().toLocaleTimeString("id-ID");
+
+          if (topic === feeds.gasStatus) {
+            const el = document.getElementById("gasStatus");
+            el.textContent = val;
+            el.className = "value " + val;
+          }
+          if (topic === feeds.gasLevel) {
+            const pct = parseInt(val);
+            document.getElementById("gasLevel").textContent = pct;
+            const bar = document.getElementById("gasBar");
+            bar.style.width = pct + "%";
+            bar.style.background =
+              pct < 30 ? "#3fb950" : pct < 60 ? "#d29922" : "#f85149";
+            document.getElementById("lastUpdate").textContent =
+              "Update terakhir: " + now;
+          }
+          if (topic === feeds.temp)
+            document.getElementById("temp").textContent =
+              parseFloat(val).toFixed(1);
+          if (topic === feeds.hum)
+            document.getElementById("hum").textContent =
+              parseFloat(val).toFixed(1);
+          if (topic === feeds.fanStatus)
+            document.getElementById("fanStatus").textContent = val;
+          if (topic === feeds.servoCtrl)
+            document.getElementById("regStatus").textContent =
+              val === "TUTUP" ? "TERTUTUP" : "TERBUKA";
+        });
+      }
 
       function fanControl(cmd) {
         client.publish(feeds.fanCtrl, cmd);
       }
-
       function servoControl(cmd) {
         client.publish(feeds.servoCtrl, cmd);
       }
-      
     </script>
   </body>
 </html>
