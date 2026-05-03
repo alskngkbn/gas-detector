@@ -221,6 +221,17 @@
       </div>
     </div>
 
+    <!-- Kontrol Servo -->
+    <div class="card full">
+      <h3>Kontrol Regulator Gas (Servo)</h3>
+      <div>Status regulator: <strong id="regStatus">TERBUKA</strong></div>
+      <div class="btn-row">
+        <button style="background:#da3633;color:white" onclick="servoControl('TUTUP')">🔒 Tutup Regulator</button>
+        <button style="background:#238636;color:white" onclick="servoControl('BUKA')">🔓 Buka Regulator</button>
+        <button style="background:#1f6feb;color:white" onclick="servoControl('AUTO')">🔄 Auto</button>
+      </div>
+    </div>
+
     <script>
       const AIO_USERNAME = "alskngkbn";
       const AIO_KEY = "aio_TPoi02csEMy2RzBjYK6RGgX5pptH";
@@ -237,6 +248,8 @@
         temp: `${AIO_USERNAME}/feeds/temperature`,
         hum: `${AIO_USERNAME}/feeds/humidity`,
         fanCtrl: `${AIO_USERNAME}/feeds/fan-control`,
+        servoCtrl: `${AIO_USERNAME}/feeds/servo-control`,
+        fanStatus: `${AIO_USERNAME}/feeds/fan-status`
       };
 
       client.on("connect", () => {
@@ -288,6 +301,11 @@
       function fanControl(cmd) {
         client.publish(feeds.fanCtrl, cmd);
       }
+
+      function servoControl(cmd) {
+        client.publish(feeds.servoCtrl, cmd);
+      }
+      
     </script>
   </body>
 </html>
