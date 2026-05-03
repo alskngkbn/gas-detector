@@ -219,16 +219,15 @@
         </div>
         <div class="timestamp" id="lastUpdate">Menunggu data...</div>
       </div>
-    </div>
-
-    <!-- Kontrol Servo -->
-    <div class="card full">
-      <h3>Kontrol Regulator Gas (Servo)</h3>
-      <div>Status regulator: <strong id="regStatus">TERBUKA</strong></div>
-      <div class="btn-row">
-        <button style="background:#da3633;color:white" onclick="servoControl('TUTUP')">🔒 Tutup Regulator</button>
-        <button style="background:#238636;color:white" onclick="servoControl('BUKA')">🔓 Buka Regulator</button>
-        <button style="background:#1f6feb;color:white" onclick="servoControl('AUTO')">🔄 Auto</button>
+      <!-- Kontrol Servo -->
+      <div class="card full">
+        <h3>Kontrol Regulator Gas (Servo)</h3>
+        <div>Status regulator: <strong id="regStatus">TERBUKA</strong></div>
+        <div class="btn-row">
+          <button id="btnOff" onclick="servoControl('TUTUP')">🔒 Tutup Regulator</button>
+          <button id="btnOn" onclick="servoControl('BUKA')">🔓 Buka Regulator</button>
+          <button id="btnAuto" onclick="servoControl('AUTO')">🔄 Auto</button>
+        </div>
       </div>
     </div>
 
