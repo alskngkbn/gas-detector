@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gas Detector</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #0d1117;
+        color: #e6edf3;
+        padding: 24px;
+        min-height: 100vh;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 8px;
+        font-size: 1.5em;
+      }
+      .subtitle {
+        text-align: center;
+        color: #8b949e;
+        margin-bottom: 24px;
+        font-size: 0.85em;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #161b22;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #30363d;
+      }
+      .card.full {
+        grid-column: span 2;
+      }
+      .card h3 {
+        font-size: 0.8em;
+        color: #8b949e;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .value {
+        font-size: 2.2em;
+        font-weight: bold;
+      }
+      .unit {
+        font-size: 0.85em;
+        color: #8b949e;
+      }
+
+      /* Status warna */
+      .AMAN {
+        color: #3fb950;
+      }
+      .WASPADA {
+        color: #d29922;
+      }
+      .BAHAYA {
+        color: #f85149;
+      }
+
+      /* Progress bar gas */
+      .bar-bg {
+        background: #21262d;
+        border-radius: 99px;
+        height: 10px;
+        margin-top: 10px;
+      }
+      .bar-fill {
+        height: 10px;
+        border-radius: 99px;
+        transition:
+          width 0.5s,
+          background 0.5s;
+      }
+
+      /* Kontrol kipas */
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      button {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      button:hover {
+        opacity: 0.85;
+      }
+      #btnOn {
+        background: #238636;
+        color: white;
+      }
+      #btnOff {
+        background: #da3633;
+        color: white;
+      }
+      #btnAuto {
+        background: #1f6feb;
+        color: white;
+      }
+
+      .fan-state {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.82em;
+        font-weight: bold;
+      }
+      .fan-ON {
+        background: #23863633;
+        color: #3fb950;
+      }
+      .fan-OFF {
+        background: #da363333;
+        color: #f85149;
+      }
+
+      /* Koneksi status */
+      .conn-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+        background: #f85149;
+      }
+      .conn-dot.connected {
+        background: #3fb950;
+      }
+      .conn-label {
+        font-size: 0.8em;
+        color: #8b949e;
+      }
+
+      .timestamp {
+        font-size: 0.75em;
+        color: #8b949e;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔥 Gas Leak Monitor</h1>
+    <p class="subtitle">
+      <span class="conn-dot" id="connDot"></span>
+      <span class="conn-label" id="connLabel">Menghubungkan...</span>
+    </p>
+
+    <div class="grid">
+      <!-- Status -->
+      <div class="card">
+        <h3>Status Kebocoran</h3>
+        <div class="value AMAN" id="gasStatus">—</div>
+      </div>
+
+      <!-- Level Gas -->
+      <div class="card">
+        <h3>Level Gas</h3>
+        <div>
+          <span class="value" id="gasLevel">—</span> <span class="unit">%</span>
+        </div>
+        <div class="bar-bg">
+          <div
+            class="bar-fill"
+            id="gasBar"
+            style="width: 0%; background: #3fb950"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Suhu -->
+      <div class="card">
+        <h3>Suhu</h3>
+        <div>
+          <span class="value" id="temp">—</span> <span class="unit">°C</span>
+        </div>
+      </div>
+
+      <!-- Kelembapan -->
+      <div class="card">
+        <h3>Kelembapan</h3>
+        <div>
+          <span class="value" id="hum">—</span> <span class="unit">%</span>
+        </div>
+      </div>
+
+      <!-- Kontrol Kipas -->
+      <div class="card full">
+        <h3>Kontrol Kipas</h3>
+        <div>
+          Status kipas:
+          <span class="fan-state fan-OFF" id="fanBadge">OFF</span>
+        </div>
+        <div class="btn-row">
+          <button id="btnOn" onclick="fanControl('ON')">🌀 Kipas ON</button>
+          <button id="btnOff" onclick="fanControl('OFF')">⏹ Kipas OFF</button>
+          <button id="btnAuto" onclick="fanControl('AUTO')">🔄 Auto</button>
+        </div>
+        <div class="timestamp" id="lastUpdate">Menunggu data...</div>
+      </div>
+    </div>
+
+    <script>
+      const AIO_USERNAME = "alskngkbn";
+      const AIO_KEY = "aio_TPoi02csEMy2RzBjYK6RGgX5pptH";
+
+      const client = mqtt.connect(`wss://io.adafruit.com:443/mqtt`, {
+        username: AIO_USERNAME,
+        password: AIO_KEY,
+        clientId: "web_" + Math.random().toString(16).slice(2),
+      });
+
+      const feeds = {
+        gasLevel: `${AIO_USERNAME}/feeds/gas-level`,
+        gasStatus: `${AIO_USERNAME}/feeds/gas-status`,
+        temp: `${AIO_USERNAME}/feeds/temperature`,
+        hum: `${AIO_USERNAME}/feeds/humidity`,
+        fanCtrl: `${AIO_USERNAME}/feeds/fan-control`,
+      };
+
+      client.on("connect", () => {
+        document.getElementById("connDot").classList.add("connected");
+        document.getElementById("connLabel").textContent =
+          "Terhubung ke Adafruit IO";
+        client.subscribe(Object.values(feeds));
+      });
+
+      client.on("error", () => {
+        document.getElementById("connLabel").textContent = "Koneksi gagal";
+      });
+
+      client.on("message", (topic, message) => {
+        const val = message.toString();
+        const now = new Date().toLocaleTimeString("id-ID");
+
+        if (topic === feeds.gasStatus) {
+          const el = document.getElementById("gasStatus");
+          el.textContent = val;
+          el.className = "value " + val;
+        }
+
+        if (topic === feeds.gasLevel) {
+          const pct = parseInt(val);
+          document.getElementById("gasLevel").textContent = pct;
+          const bar = document.getElementById("gasBar");
+          bar.style.width = pct + "%";
+          bar.style.background =
+            pct < 30 ? "#3fb950" : pct < 60 ? "#d29922" : "#f85149";
+          document.getElementById("lastUpdate").textContent =
+            "Update terakhir: " + now;
+        }
+
+        if (topic === feeds.temp)
+          document.getElementById("temp").textContent =
+            parseFloat(val).toFixed(1);
+        if (topic === feeds.hum)
+          document.getElementById("hum").textContent =
+            parseFloat(val).toFixed(1);
+
+        if (topic === feeds.fanCtrl) {
+          const badge = document.getElementById("fanBadge");
+          badge.textContent = val;
+          badge.className = "fan-state fan-" + val;
+        }
+      });
+
+      function fanControl(cmd) {
+        client.publish(feeds.fanCtrl, cmd);
+      }
+    </script>
+  </body>
+</html>
